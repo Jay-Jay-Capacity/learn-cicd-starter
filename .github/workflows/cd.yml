@@ -1,4 +1,4 @@
-name: cd
+name: Deploy to Cloud Run
 
 on:
   push:
@@ -29,27 +29,20 @@ jobs:
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v2
         with:
-          project_id: your-project-id
-          service_account_key: ${{ secrets.GCP_CREDENTIALS }}
-          export_default_credentials: true
+          project_id: industrial-joy-473515-v9
 
-    	  - name: Configure Docker for Artifact Registry
-         run: |
-             gcloud auth configure-docker us-central1-docker.pkg.dev
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
 
-	  - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
+      - name: Build and Push Docker image
+        run: |
+          gcloud builds submit --tag us-central1-docker.pkg.dev/industrial-joy-473515-v9/notely-ar-repo/notely:latest .
 
-        
-       - name: Build and Push Docker image
-         run: |
-            gcloud builds submit --tag us-central1-docker.pkg.dev/us-central1-docker.pkg.dev/industrial-joy-473515-v9/notely-ar-repo/notely:latest .
-        
-       - name: Deploy to Cloud Run
-         run: |
-            gcloud run deploy notely-service \
-          --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/notely-ar-repo/notely:${{ github.sha }} \
-          --region us-central1 \
-          --platform managed \
-          --allow-unauthenticated
-
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy notely-service \
+            --image us-central1-docker.pkg.dev/industrial-joy-473515-v9/notely-ar-repo/notely:latest \
+            --region us-central1 \
+            --platform managed \
+            --allow-unauthenticated
